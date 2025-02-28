@@ -1,0 +1,70 @@
+{
+   "BlocProvider Static Method": {
+        "prefix": "OMBlocProvider",
+        "body": [
+            "static ${1:CubitName} of(BuildContext context) => BlocProvider.of<${1:CubitName}>(context);"
+        ],
+        "description": "Generate a static method for BlocProvider.of"
+    },
+    
+        "Pagination State Class": {
+            "prefix": "OMpaginationModel",
+            "body": [
+                "class PaginationState<T> {",
+                "  List<T> data;",
+                "  PaginationStatus status;",
+                "  int? limit;",
+                "  int total;",
+                "  int currentpage;",
+                "  int totalpage;",
+                "  String? errorMessage;",
+                "",
+                "  PaginationState({",
+                "    required this.data,",
+                "    required this.status,",
+                "    required this.limit,",
+                "    required this.total,",
+                "    this.errorMessage,",
+                "    required this.currentpage,",
+                "    required this.totalpage,",
+                "  });",
+                "",
+                "  bool get isComplete =>",
+                "      status != PaginationStatus.initial && data.length == total;",
+                "  bool get canloadmore =>",
+                "      !(isComplete || status == PaginationStatus.paginating);",
+                "}",
+            "enum PaginationStatus {",
+            "  initial,",
+            "  loading,",
+            "",
+            "  paginating,",
+            "  error,",
+            "  listener,",
+            "}"
+            ],
+            "description": "Generate a PaginationState Model and PaginationStatus enum"
+        },
+        
+        "Fetch All Item Data Method": {
+        "prefix": "OMfetchData",
+        "body": [
+            "Future ${1:fetchALLItem}Data() async {",
+            "    emit(${1:FetchALLItem}Loading());",
+            "",
+            "    final res = await ${2:CategoryRepo}.${3:fetchcategory}();",
+            "    res.fold(",
+            "      (err) {",
+            "        emit(${1:FetchALLItem}Fail());",
+            "      },",
+            "      (res) async {",
+            "        ${5:categorylist} = res;",
+            "        emit(${1:FetchALLItem}Success());",
+            "      },",
+            "    );",
+            "}"
+        ],
+        "description": "Generate a method for fetching item in bloc cubit and emitting appropriate states"
+    }
+    
+}
