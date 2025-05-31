@@ -2,17 +2,18 @@
   "name": "cubithelper",
   "displayName": "cubithelper",
   "description": "it will help me to create cubit flutter",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "publisher": "omaralam",
   "icon": "images/icon.webp",
-
   "engines": {
     "vscode": "^1.91.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:dart"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
@@ -20,16 +21,14 @@
         "command": "cubithelper.createCubitFolder",
         "title": "Bloc2:Create pagination cubit "
       },
-    
       {
         "command": "cubithelper.createMVVMFolder",
         "title": "create MVVM Folder"
-    },  
+      },
       {
         "command": "cubithelper.syncCubitStates",
-                  "title": "async states"
-            
-    }
+        "title": "async states"
+      }
     ],
     "menus": {
       "explorer/context": [
@@ -42,21 +41,20 @@
           "command": "cubithelper.createMVVMFolder",
           "when": "explorerResourceIsFolder",
           "group": "cubithelper"
-      },  
+        },
         {
           "command": "cubithelper.syncCubitStates",
-                    "when": "resourceLangId == dart",
-                    "group": "cubithelper"
-      }
+          "when": "resourceLangId == dart",
+          "group": "cubithelper"
+        }
       ]
     },
     "snippets": [
-     
       {
         "language": "dart",
         "path": "./snippets/cubit.json"
-    }
-  ]
+      }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
@@ -85,5 +83,8 @@
     "eslint": "^8.57.0",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.4.5"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
   }
 }

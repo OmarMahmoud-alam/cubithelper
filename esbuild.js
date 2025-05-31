@@ -51,6 +51,7 @@ async function main() {
 }
 
 main().catch(e => {
-	console.error(e);
+	console.error("X, error", e);
+	console.error(`    ${e.location.file}:${e.location.line}:${e.location.column}:`);
 	process.exit(1);
 });

@@ -1,38 +1,41 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-import {extractEmittedStates,extractEmittedStates2,extractExistingStates,generateNewStates,createMVVMFolderStructure,findStateFile,} from './utils';
+import {
+  extractEmittedStates2, extractExistingStates, generateNewStates, createMVVMFolderStructure, findStateFile,
+} from './utils';
 
 export function activate(context: vscode.ExtensionContext) {
-    let disposable = vscode.commands.registerCommand('cubithelper.createCubitFolder', async  (uri: vscode.Uri) => {
-        // Prompt user for the folder name
-        const folderName = await vscode.window.showInputBox({ prompt: 'Enter the folder name' });
-        
-        if (!folderName) {
-            vscode.window.showErrorMessage('Folder name cannot be empty');
-            return;
-        }
 
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-            vscode.window.showErrorMessage('No workspace folder is open');
-            return;
-        }
-        const folderName2=filename( folderName);
-        const workspaceFolder = workspaceFolders[0].uri.fsPath;
-        const folderPath = path.join(uri.fsPath, folderName);
-        const folderPath2 = path.join(uri.fsPath,folderName2);
-        
-        // Create folder
-        if (!fs.existsSync(folderName2)) {
-            fs.mkdirSync(folderName2);
-        }
+  let disposable = vscode.commands.registerCommand('cubithelper.createCubitFolder', async (uri: vscode.Uri) => {
+    // Prompt user for the folder name
+    const folderName = await vscode.window.showInputBox({ prompt: 'Enter the folder name' });
 
-        // Create files with content
-        const cubitFileName = `${folderName2}_cubit.dart`;
-        const stateFileName = `${folderName2}_state.dart`;
+    if (!folderName) {
+      vscode.window.showErrorMessage('Folder name cannot be empty');
+      return;
+    }
 
-        const cubitContent = `
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+      vscode.window.showErrorMessage('No workspace folder is open');
+      return;
+    }
+    const folderName2 = filename(folderName);
+    const workspaceFolder = workspaceFolders[0].uri.fsPath;
+    const folderPath = path.join(uri.fsPath, folderName);
+    const folderPath2 = path.join(uri.fsPath, folderName2);
+
+    // Create folder
+    if (!fs.existsSync(folderName2)) {
+      fs.mkdirSync(folderName2);
+    }
+
+    // Create files with content
+    const cubitFileName = `${folderName2}_cubit.dart`;
+    const stateFileName = `${folderName2}_state.dart`;
+
+    const cubitContent = `
 import 'package:bazaid/core/model.dart';
 
 import 'package:flutter/material.dart';
@@ -111,7 +114,7 @@ class ${capitalize(folderName)}Cubit extends Cubit<${capitalize(folderName)}Stat
 }
 `;
 
-        const stateContent = `
+    const stateContent = `
 part of '${folderName2}_cubit.dart';
 
 sealed class ${capitalize(folderName)}State {}
@@ -134,49 +137,50 @@ final class FetchMoreDatafail extends ${capitalize(folderName)}State {}
 final class FetchMoreDataSuccess extends ${capitalize(folderName)}State {}
 `;
 
-        fs.writeFileSync(path.join(folderPath2, cubitFileName), cubitContent.trim());
-        fs.writeFileSync(path.join(folderPath2, stateFileName), stateContent.trim());
+    fs.writeFileSync(path.join(folderPath2, cubitFileName), cubitContent.trim());
+    fs.writeFileSync(path.join(folderPath2, stateFileName), stateContent.trim());
 
-        vscode.window.showInformationMessage(`Created folder '${folderName}' with files '${cubitFileName}' and '${stateFileName}'.`);
-    });
-    let syncCubitStatesCommand = vscode.commands.registerCommand('cubithelper.syncCubitStates', async () => {
-      const editor = vscode.window.activeTextEditor;
-      if (!editor) {
-          vscode.window.showErrorMessage('No active editor found!');
-          return;
-      }
+    vscode.window.showInformationMessage(`Created folder '${folderName}' with files '${cubitFileName}' and '${stateFileName}'.`);
+  });
+  let syncCubitStatesCommand = vscode.commands.registerCommand('cubithelper.syncCubitStates', async () => {
 
-      const document = editor.document;
-      // Match the state class name from the Cubit class declaration
-      const cubitClassMatch = document.getText().match(/class\s+(\w+Cubit)\s+extends\s+Cubit<(\w+)>/);      if (!cubitClassMatch) {
-          vscode.window.showErrorMessage('No Cubit class found in the current file!');
-          return;
-      }
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showErrorMessage('No active editor found!');
+      return;
+    }
 
-      // Extract the state base class name (e.g. "CounterState" from "Cubit<CounterState>")
-      const cubitClassName = cubitClassMatch[1];
-      const stateBaseClassName = cubitClassMatch[2];
-      const stateFilePath = await findStateFile(document.fileName);
-      if (!stateFilePath) {
-          vscode.window.showErrorMessage('Corresponding state file not found!');
-          return;
-      }
- 
+    const document = editor.document;
+    // Match the state class name from the Cubit class declaration
+    const cubitClassMatch = document.getText().match(/class\s+(\w+Cubit)\s+extends\s+Cubit<(\w+)>/); if (!cubitClassMatch) {
+      vscode.window.showErrorMessage('No Cubit class found in the current file!');
+      return;
+    }
 
-      const stateFileContent = fs.readFileSync(stateFilePath, 'utf8');
-      const emittedStates = extractEmittedStates2(document.getText());
-      const existingStates = extractExistingStates(stateFileContent, stateBaseClassName);
+    // Extract the state base class name (e.g. "CounterState" from "Cubit<CounterState>")
+    const cubitClassName = cubitClassMatch[1];
+    const stateBaseClassName = cubitClassMatch[2];
+    const stateFilePath = await findStateFile(document.fileName);
+    if (!stateFilePath) {
+      vscode.window.showErrorMessage('Corresponding state file not found!');
+      return;
+    }
 
-      const missingStates = emittedStates.filter(state => !existingStates.includes(state["state"]));
-      if (missingStates.length === 0) {
-          vscode.window.showInformationMessage('All emitted states are already defined.');
-          return;
-      }
 
-      const newStateContent = generateNewStates(missingStates, stateBaseClassName);
+    const stateFileContent = fs.readFileSync(stateFilePath, 'utf8');
+    const emittedStates = await extractEmittedStates2(document.getText(), document);
+    const existingStates = extractExistingStates(stateFileContent, stateBaseClassName);
 
-      fs.appendFileSync(stateFilePath, newStateContent, 'utf8');
-      vscode.window.showInformationMessage(`Added missing states to ${stateFilePath}`);
+    const missingStates = emittedStates.filter(state => !existingStates.includes(state["state"]));
+    if (missingStates.length === 0) {
+      vscode.window.showInformationMessage('All emitted states are already defined.');
+      return;
+    }
+
+    const newStateContent = generateNewStates(missingStates, stateBaseClassName);
+
+    fs.appendFileSync(stateFilePath, newStateContent, 'utf8');
+    vscode.window.showInformationMessage(`Added missing states to ${stateFilePath}`);
   });
   let mvvmfolder = vscode.commands.registerCommand('cubithelper.createMVVMFolder', async (uri: vscode.Uri) => {
     if (uri && uri.fsPath) {
@@ -190,27 +194,27 @@ final class FetchMoreDataSuccess extends ${capitalize(folderName)}State {}
     }
   });
   context.subscriptions.push(disposable);
-    context.subscriptions.push(syncCubitStatesCommand);
-    context.subscriptions.push(mvvmfolder);
+  context.subscriptions.push(syncCubitStatesCommand);
+  context.subscriptions.push(mvvmfolder);
 
 }
 
-export function deactivate() {}
+export function deactivate() { }
 
 // Helper function to capitalize the first letter
 function capitalize(text: string): string {
-    return text.charAt(0).toUpperCase() + text.slice(1);
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 function filename(input: string): string {
   return input
-      .replace(/([a-z])([A-Z])/g, '$1_$2')  // Insert underscore before each uppercase letter
-      .replace(/\s+/g, '_')                 // Replace spaces with underscores (if any)
-      .toLowerCase();                       // Convert the entire string to lowercase
+    .replace(/([a-z])([A-Z])/g, '$1_$2')  // Insert underscore before each uppercase letter
+    .replace(/\s+/g, '_')                 // Replace spaces with underscores (if any)
+    .toLowerCase();                       // Convert the entire string to lowercase
 }
 function snakeCase(text: string): string {
   return text
-      .replace(/([A-Z])/g, '_$1')     // Add underscore before capitals
-      .replace(/^_/, '')               // Remove leading underscore
-      .toLowerCase();                  // Convert to lowercase
+    .replace(/([A-Z])/g, '_$1')     // Add underscore before capitals
+    .replace(/^_/, '')               // Remove leading underscore
+    .toLowerCase();                  // Convert to lowercase
 }
